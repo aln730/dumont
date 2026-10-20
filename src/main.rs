@@ -1,11 +1,11 @@
-use actix_web::{middleware::Logger, App, HttpServer};
+use actix_web::{App, HttpServer, middleware::Logger};
 use dotenvy::dotenv;
 
 mod api;
 mod app;
-mod snmp;
+mod ipp;
 
-use app::configure_app;
+use app::{configure_app, get_app_data};
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
@@ -14,8 +14,11 @@ async fn main() -> std::io::Result<()> {
 
     HttpServer::new(|| {
         App::new()
-            .wrap(Logger::default())
+            .wrap(Logger::new(
+                "%a \"%r\" %s %b \"%{Referer}i\" \"%{User-Agent}i\" %T",
+            ))
             .configure(configure_app)
+            .data_factory(get_app_data)
     })
     .bind(("0.0.0.0", 8080))?
     .run()
