@@ -14,7 +14,7 @@ pub fn printer_status(host: &str) -> Result<Vec<String>, String> {
         .build();
 
     let operation = IppOperationBuilder::get_printer_attributes(uri)
-        .attributes(&[PRINTER_STATE_REASONS])
+        .attributes([PRINTER_STATE_REASONS])
         .build();
 
     let response = client.send(operation).map_err(|e| e.to_string())?;
