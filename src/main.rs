@@ -8,6 +8,7 @@ mod api;
 mod app;
 mod auth;
 mod ipp;
+mod metrics;
 
 use app::{configure_app, get_app_data};
 
@@ -15,6 +16,13 @@ use app::{configure_app, get_app_data};
 async fn main() -> std::io::Result<()> {
     dotenv().ok();
     env_logger::init();
+
+    let printers = std::env::var("DUMONT_PRINTERS")
+        .expect("No DUMONT_PRINTERS")
+        .split_whitespace()
+        .map(String::from)
+        .collect();
+    metrics::start(printers);
 
     HttpServer::new(|| {
         App::new()
