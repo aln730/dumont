@@ -59,9 +59,10 @@ pub fn printer_status(host: &str) -> Result<PrinterInfo, String> {
     let mut markers = Vec::new();
     for (name, level) in names.into_iter().zip(levels) {
         if let IppValue::Integer(l) = level
-            && *l >= 0 {
-                markers.push((name.to_string(), *l));
-            }
+            && *l >= 0
+        {
+            markers.push((name.to_string(), *l));
+        }
     }
 
     let stopped = matches!(

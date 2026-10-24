@@ -36,6 +36,11 @@ pub fn start(printers: Vec<String>) {
                 client
                     .gauge("printer.has_error", (has_error as i32).to_string(), &tags)
                     .ok();
+
+                for reason in info.reasons.iter().filter(|r| r.ends_with("-error")) {
+                    let tags = [tags[0].clone(), format!("reason:{reason}")];
+                    client.gauge("printer.error_reason", "1", &tags).ok();
+                }
                 client
                     .gauge("printer.queued_jobs", info.queued_jobs.to_string(), &tags)
                     .ok();
