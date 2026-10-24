@@ -41,6 +41,10 @@ pub fn start(printers: Vec<String>) {
                     let tags = [tags[0].clone(), format!("reason:{reason}")];
                     client.gauge("printer.error_reason", "1", &tags).ok();
                 }
+                if !info.ready {
+                    let tags = [tags[0].clone(), "reason:printer-stopped".to_string()];
+                    client.gauge("printer.error_reason", "1", &tags).ok();
+                }
                 client
                     .gauge("printer.queued_jobs", info.queued_jobs.to_string(), &tags)
                     .ok();
