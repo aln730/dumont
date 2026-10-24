@@ -22,16 +22,30 @@ pub fn start(printers: Vec<String>) {
                 let name = printer.clone();
                 let result = actix_web::web::block(move || crate::ipp::printer_status(&name)).await;
 
-                let (up, has_error) = match result {
-                    Ok(Ok(info)) => (1, !info.ready || info.reasons.iter().any(|r| r.ends_with("-error"))),
-                    _ => (0, true),
+                let tags = [format!("printer:{}", printer.split('.').next().unwrap())];
+
+                let Ok(Ok(info)) = result else {
+                    client.gauge("printer.up", "0", &tags).ok();
+                    client.gauge("printer.has_error", "1", &tags).ok();
+                    continue;
                 };
 
-                let tags = [format!("printer:{}", printer.split('.').next().unwrap())];
-                client.gauge("printer.up", up.to_string(), &tags).ok();
+                let has_error = !info.ready || info.reasons.iter().any(|r| r.ends_with("-error"));
+
+                client.gauge("printer.up", "1", &tags).ok();
                 client
                     .gauge("printer.has_error", (has_error as i32).to_string(), &tags)
                     .ok();
+                client
+                    .gauge("printer.queued_jobs", info.queued_jobs.to_string(), &tags)
+                    .ok();
+
+                for (marker, level) in &info.markers {
+                    let tags = [tags[0].clone(), format!("marker:{marker}")];
+                    client
+                        .gauge("printer.marker_level", level.to_string(), &tags)
+                        .ok();
+                }
             }
             actix_web::rt::time::sleep(Duration::from_secs(30)).await;
         }
