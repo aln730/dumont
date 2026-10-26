@@ -1,6 +1,16 @@
 use dogstatsd::{Client, Options};
 use std::time::Duration;
 
+fn marker_label(raw: &str) -> String {
+    match raw.trim().to_lowercase().as_str() {
+        "bk" => "black".to_string(),
+        "c" => "cyan".to_string(),
+        "m" => "magenta".to_string(),
+        "y" => "yellow".to_string(),
+        other => other.to_string(),
+    }
+}
+
 pub fn start(printers: Vec<String>) {
     let host = match std::env::var("DD_AGENT_HOST") {
         Ok(host) => host,
@@ -50,7 +60,7 @@ pub fn start(printers: Vec<String>) {
                     .ok();
 
                 for (marker, level) in &info.markers {
-                    let tags = [tags[0].clone(), format!("marker:{marker}")];
+                    let tags = [tags[0].clone(), format!("marker:{}", marker_label(marker))];
                     client
                         .gauge("printer.marker_level", level.to_string(), &tags)
                         .ok();
